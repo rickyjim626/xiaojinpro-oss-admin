@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import LoginPage from '@/components/login-page'
 import FileAdmin from '@/components/file-admin'
+import AuthenticatedLayout from '@/components/AuthenticatedLayout'
 import { auth } from '@/lib/api'
 
 export default function Home() {
@@ -45,7 +46,9 @@ export default function Home() {
   return (
     <>
       {isAuthenticated ? (
-        <FileAdmin onLogout={handleLogout} />
+        <AuthenticatedLayout onLogout={handleLogout}>
+          <FileAdmin onLogout={handleLogout} />
+        </AuthenticatedLayout>
       ) : (
         <LoginPage onLoginSuccess={handleLoginSuccess} />
       )}

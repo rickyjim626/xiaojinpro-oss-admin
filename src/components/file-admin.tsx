@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { api, auth, type FileItem } from '@/lib/api'
 import { formatFileSize, formatDateTime, cn } from '@/lib/utils'
-import { Upload, Eye, Trash2, Copy, LogOut } from 'lucide-react'
+import { Upload, Eye, Trash2, Copy } from 'lucide-react'
 
 interface FileAdminProps {
   onLogout: () => void
@@ -18,6 +18,8 @@ export default function FileAdmin({ onLogout }: FileAdminProps) {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [description, setDescription] = useState('')
+  const [tags, setTags] = useState('')
   const [error, setError] = useState('')
 
   const loadFiles = async () => {
@@ -41,30 +43,55 @@ export default function FileAdmin({ onLogout }: FileAdminProps) {
     setSelectedFile(file || null)
   }
 
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
   const handleUpload = async () => {
     if (!selectedFile) return
 
     setUploading(true)
     setUploadProgress(0)
-    
-    // Simulate progress for demo
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => Math.min(prev + 10, 90))
-    }, 100)
+    setError('')
 
     try {
-      await api.upload('/files/upload', selectedFile)
-      setUploadProgress(100)
+      const fileSize = selectedFile.size
+      const fileSizeMB = fileSize / (1024 * 1024)
+      
+      console.log(`Starting upload for ${selectedFile.name} (${formatFileSize(fileSize)})`)
+      
+      // Use smart upload that automatically chooses single vs multipart
+      await files.smartUpload(
+        selectedFile, 
+        description, 
+        tags,
+        (progress) => {
+          setUploadProgress(progress)
+        }
+      )
+      
+      console.log(`Upload completed for ${selectedFile.name}`)
+      
+      // Reset form
       setSelectedFile(null)
-      await loadFiles()
+      setDescription('')
+      setTags('')
       
       // Reset file input
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
       if (fileInput) fileInput.value = ''
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed')
+      
+      // Refresh file list
+      await loadFiles()
+      
+    } catch (error: any) {
+      console.error('Upload failed:', error)
+      setError(error.message || 'Upload failed. Please try again.')
     } finally {
-      clearInterval(progressInterval)
       setUploading(false)
       setUploadProgress(0)
     }
@@ -102,58 +129,75 @@ export default function FileAdmin({ onLogout }: FileAdminProps) {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl font-bold text-stone-800">OSS File Manager</h1>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Upload Section */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-          <h2 className="text-lg font-medium text-stone-800 mb-4">Upload File</h2>
-          <div className="flex items-center gap-4">
-            <Input
-              type="file"
-              onChange={handleFileSelect}
-              disabled={uploading}
-              className="flex-1"
-            />
-            <Button
-              onClick={handleUpload}
-              disabled={!selectedFile || uploading}
-              className="bg-stone-800 hover:bg-stone-900 flex items-center gap-2"
-            >
-              <Upload className="w-4 h-4" />
-              {uploading ? 'Uploading...' : 'Upload'}
-            </Button>
-          </div>
+          <h2 className="text-lg font-medium text-stone-800 mb-4">
+            Upload File
+            {selectedFile && (
+              <span className="text-sm font-normal text-stone-600 ml-2">
+                ({formatFileSize(selectedFile.size)} - {selectedFile.size >= 100 * 1024 * 1024 ? 'Multipart' : 'Single'} Upload)
+              </span>
+            )}
+          </h2>
           
-          {uploading && (
-            <div className="mt-4">
-              <div className="flex justify-between text-sm text-stone-600 mb-1">
-                <span>Uploading...</span>
-                <span>{uploadProgress}%</span>
-              </div>
-              <div className="w-full bg-stone-200 rounded-full h-2">
-                <div 
-                  className="bg-stone-800 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Input
+                type="file"
+                onChange={handleFileSelect}
+                disabled={uploading}
+                className="flex-1"
+              />
+              <Button
+                onClick={handleUpload}
+                disabled={!selectedFile || uploading}
+                className="bg-stone-800 hover:bg-stone-900 flex items-center gap-2"
+              >
+                <Upload className="w-4 h-4" />
+                {uploading ? 'Uploading...' : 'Upload'}
+              </Button>
+            </div>
+            
+            {selectedFile && (
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  type="text"
+                  placeholder="Description (optional)"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  disabled={uploading}
+                />
+                <Input
+                  type="text"
+                  placeholder="Tags (optional)"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  disabled={uploading}
                 />
               </div>
-            </div>
-          )}
+            )}
+            
+            {uploading && (
+              <div className="mt-4">
+                <div className="flex justify-between text-sm text-stone-600 mb-1">
+                  <span>
+                    {selectedFile?.size && selectedFile.size >= 100 * 1024 * 1024 
+                      ? `Uploading ${selectedFile.name} (Multipart)...` 
+                      : `Uploading ${selectedFile?.name}...`
+                    }
+                  </span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <div className="w-full bg-stone-200 rounded-full h-2">
+                  <div 
+                    className="bg-stone-800 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Error Message */}
@@ -239,7 +283,6 @@ export default function FileAdmin({ onLogout }: FileAdminProps) {
             </div>
           )}
         </div>
-      </main>
     </div>
   )
 }

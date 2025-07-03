@@ -39,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Deployment files
+*.tar
+*.tar.gz
+*.tar.zst
+nginx-proxy.tar
+
+# Docker build context
+Dockerfile.temp
+
+# IDE
+.vscode/
+.idea/

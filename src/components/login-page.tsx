@@ -4,38 +4,36 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { auth } from '@/lib/api'
+import { useAuthStore } from '@/lib/auth-store'
+import { WxLoginWidget } from '@/components/wx-login-widget'
 
 interface LoginPageProps {
   onLoginSuccess: () => void
 }
 
 export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
-  const [loginMode, setLoginMode] = useState<'credentials' | 'token'>('credentials')
+  const [loginMode, setLoginMode] = useState<'credentials' | 'token' | 'wechat'>('credentials')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [token, setToken] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  
+  const { login, isLoading, error, clearError } = useAuthStore()
 
   const handleCredentialsLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError('')
+    clearError()
 
     try {
-      await auth.login(username, password)
+      await login(username, password)
       onLoginSuccess()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
-    } finally {
-      setIsLoading(false)
+      // Error is handled by the store
     }
   }
 
   const handleTokenLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError('')
+    clearError()
 
     try {
       const isValid = await auth.verifyToken(token)
@@ -43,12 +41,10 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         localStorage.setItem('XJP_TOKEN', token)
         onLoginSuccess()
       } else {
-        setError('Invalid token')
+        console.error('Token verification failed')
       }
     } catch (err) {
-      setError('Token verification failed')
-    } finally {
-      setIsLoading(false)
+      console.error('Token login error:', err)
     }
   }
 
@@ -68,23 +64,33 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         <div className="flex rounded-lg bg-stone-100 p-1">
           <button
             onClick={() => setLoginMode('credentials')}
-            className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+            className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-colors ${
               loginMode === 'credentials'
                 ? 'bg-white text-stone-800 shadow-sm'
                 : 'text-stone-600 hover:text-stone-800'
             }`}
           >
-            Username/Password
+            用户名/密码
           </button>
           <button
             onClick={() => setLoginMode('token')}
-            className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+            className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-colors ${
               loginMode === 'token'
                 ? 'bg-white text-stone-800 shadow-sm'
                 : 'text-stone-600 hover:text-stone-800'
             }`}
           >
             Bearer Token
+          </button>
+          <button
+            onClick={() => setLoginMode('wechat')}
+            className={`flex-1 py-2 px-3 text-xs font-medium rounded-md transition-colors ${
+              loginMode === 'wechat'
+                ? 'bg-white text-stone-800 shadow-sm'
+                : 'text-stone-600 hover:text-stone-800'
+            }`}
+          >
+            微信登录
           </button>
         </div>
 
@@ -132,7 +138,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
-        ) : (
+        ) : loginMode === 'token' ? (
           <form onSubmit={handleTokenLogin} className="space-y-6">
             <div>
               <label htmlFor="token" className="block text-sm font-medium text-stone-700">
@@ -156,6 +162,10 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
               {isLoading ? 'Verifying...' : 'Verify Token'}
             </Button>
           </form>
+        ) : (
+          <div className="space-y-6">
+            <WxLoginWidget onSuccess={onLoginSuccess} />
+          </div>
         )}
       </div>
     </div>

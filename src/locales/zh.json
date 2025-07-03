@@ -1,0 +1,137 @@
+{
+  "developer": {
+    "title": "开发者指南",
+    "subtitle": "API 文档和代码示例",
+    "intro": {
+      "title": "快速开始",
+      "description": "OSS CRUD API 为您提供完整的文件管理功能，支持上传、下载、列表和删除操作。",
+      "baseUrl": "API 基础 URL",
+      "authHeader": "认证头部",
+      "copyUrl": "复制 URL",
+      "copyHeader": "复制认证头部",
+      "copied": "已复制到剪贴板"
+    },
+    "quickStart": {
+      "title": "代码示例",
+      "curl": "cURL",
+      "python": "Python",
+      "javascript": "JavaScript",
+      "curlExample": "# 获取文件列表\\ncurl -H \"Authorization: ApiKey YOUR_API_KEY\" \\\\\\n  https://oss.xiaojinpro.com/files",
+      "pythonExample": "# pip install requests\\nimport requests\\n\\nheaders = {\\n    'Authorization': 'ApiKey YOUR_API_KEY'\\n}\\n\\nresponse = requests.get(\\n    'https://oss.xiaojinpro.com/files',\\n    headers=headers\\n)\\nprint(response.json())",
+      "jsExample": "// npm install axios\\nimport axios from 'axios';\\n\\nconst client = axios.create({\\n  baseURL: 'https://oss.xiaojinpro.com',\\n  headers: {\\n    'Authorization': 'ApiKey YOUR_API_KEY'\\n  }\\n});\\n\\nconst files = await client.get('/files');\\nconsole.log(files.data);"
+    },
+    "endpoints": {
+      "title": "API 端点",
+      "description": "所有可用的 API 端点及其描述",
+      "method": "方法",
+      "path": "路径",
+      "description": "描述",
+      "auth": "认证",
+      "required": "必需",
+      "endpoints": {
+        "listFiles": "获取文件列表",
+        "getFile": "获取文件详情",
+        "uploadFile": "上传文件",
+        "deleteFile": "删除文件",
+        "downloadFile": "下载文件",
+        "createApiKey": "创建 API Key",
+        "listApiKeys": "列出 API Keys",
+        "revokeApiKey": "撤销 API Key"
+      }
+    },
+    "errors": {
+      "title": "错误代码",
+      "description": "常见的 HTTP 状态码和解决方案",
+      "401": {
+        "title": "401 未认证",
+        "description": "API Key 无效或已过期。请检查您的认证头部。"
+      },
+      "403": {
+        "title": "403 禁止访问",
+        "description": "您没有权限访问此资源。"
+      },
+      "413": {
+        "title": "413 请求实体过大",
+        "description": "上传的文件超过大小限制。请使用分片上传。"
+      },
+      "429": {
+        "title": "429 请求过多",
+        "description": "API 调用频率超出限制。请稍后重试。"
+      },
+      "500": {
+        "title": "500 服务器错误",
+        "description": "服务器内部错误。请联系技术支持。"
+      }
+    },
+    "sdks": {
+      "title": "SDK 和工具",
+      "description": "官方和社区提供的 SDK",
+      "python": {
+        "title": "Python SDK",
+        "description": "即将推出",
+        "install": "pip install oss-crud-sdk"
+      },
+      "nodejs": {
+        "title": "Node.js SDK",
+        "description": "即将推出",
+        "install": "npm install oss-crud-sdk"
+      }
+    }
+  },
+  "apiKeys": {
+    "title": "API Keys",
+    "subtitle": "管理您的 API 访问密钥",
+    "create": "创建 API Key",
+    "note": "备注",
+    "notePlaceholder": "输入 API Key 用途说明",
+    "created": "创建时间",
+    "lastUsed": "最后使用",
+    "status": "状态",
+    "actions": "操作",
+    "active": "活跃",
+    "revoked": "已撤销",
+    "never": "从未",
+    "revoke": "撤销",
+    "restore": "恢复",
+    "delete": "删除",
+    "confirmDelete": "确认删除",
+    "deleteMessage": "确定要删除这个 API Key 吗？此操作不可撤销。",
+    "cancel": "取消",
+    "success": {
+      "created": "API Key 创建成功",
+      "revoked": "API Key 已撤销",
+      "restored": "API Key 已恢复",
+      "deleted": "API Key 已删除"
+    },
+    "errors": {
+      "createFailed": "创建 API Key 失败",
+      "revokeFailed": "撤销 API Key 失败",
+      "deleteFailed": "删除 API Key 失败",
+      "loadFailed": "加载 API Keys 失败"
+    },
+    "createDialog": {
+      "title": "API Key 创建成功",
+      "subtitle": "请保存您的 API Key，它只会显示这一次",
+      "warning": "⚠️ 重要：请立即复制并安全保存此 API Key。关闭此窗口后，您将无法再次查看完整的密钥。",
+      "copy": "复制 API Key",
+      "copied": "已复制！",
+      "close": "我已保存，关闭"
+    }
+  },
+  "common": {
+    "copy": "复制",
+    "copied": "已复制",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "retry": "重试",
+    "close": "关闭",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "view": "查看",
+    "actions": "操作",
+    "copyToClipboard": "复制到剪贴板"
+  }
+}
